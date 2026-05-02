@@ -52,6 +52,36 @@ section {
   display: block;
   margin: 15px auto;
   border: 3px solid #38bdf8;
+opacity: 0;
+  transform: scale(0.5);
+  animation: popIn 1s ease forwards;
+}
+
+@keyframes popIn {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+#popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+#popup img {
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  border: 3px solid #38bdf8;
+  object-fit: cover;
 }
 </style>
 
@@ -60,7 +90,7 @@ section {
 <body>
 <header class="hero">
 
-  <img src="profile.jpg" class="profile">
+ <img src="profile.jpg" class="profile" onclick="openImage(this)">
   <h1>🔥 omar-sho</h1>
   <p>مطور ويب | برمجة | مشاريع تقنية</p>
   <a href="https://wa.me/249963571200">
@@ -92,6 +122,19 @@ section {
 <footer style="text-align:center; padding:20px; opacity:0.7;">
 © 2026 omar-sho
 </footer>
+<div id="popup" onclick="closeImage()">
+  <img id="popupImg">
+</div>
 
+<script>
+function openImage(img) {
+  document.getElementById("popup").style.display = "flex";
+  document.getElementById("popupImg").src = img.src;
+}
+
+function closeImage() {
+  document.getElementById("popup").style.display = "none";
+}
+</script>
 </body>
 </html>
