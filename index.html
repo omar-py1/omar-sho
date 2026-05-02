@@ -104,6 +104,31 @@ opacity: 0;
     opacity: 1;
   }
 }
+#movieBox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.movies {
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+  padding: 20px;
+  scroll-snap-type: x mandatory;
+}
+
+.movies .card {
+  min-width: 160px;
+  scroll-snap-align: start;
+}
 </style>
 
 </head>
@@ -118,7 +143,21 @@ opacity: 0;
     <button class="btn">تواصل معي</button>
   </a>
 </header>
+<section>
+ <div class="movies">
 
+  <div class="card" onclick="openMovie('img1.jpg','مسلسل الأكشن','قصة مسلسل أكشن رهيب')">
+    <img src="img1.jpg" style="width:100%; border-radius:10px;">
+    <p>مسلسل الأكشن</p>
+  </div>
+
+  <div class="card" onclick="openMovie('img2.jpg','مسلسل الدراما','قصة مسلسل درامي جميل')">
+    <img src="img2.jpg" style="width:100%; border-radius:10px;">
+    <p>مسلسل الدراما</p>
+  </div>
+
+</div>
+</section>
 <section>
   <h2>👤 عني</h2>
   <div class="card">
@@ -164,6 +203,27 @@ function openImage(img) {
 
 function closeImage() {
   document.getElementById("popup").style.display = "none";
+}
+</script>
+<div id="movieBox">
+  <div id="movieContent">
+    <span onclick="closeMovie()" style="float:right; cursor:pointer; font-size:25px;">✖</span>
+
+    <img id="movieImg" style="width:100%; border-radius:10px;">
+    <h3 id="movieTitle"></h3>
+    <p id="movieDesc"></p>
+  </div>
+</div>
+<script>
+function openMovie(img, title, desc) {
+  document.getElementById("movieBox").style.display = "flex";
+  document.getElementById("movieImg").src = img;
+  document.getElementById("movieTitle").innerText = title;
+  document.getElementById("movieDesc").innerText = desc;
+}
+
+function closeMovie() {
+  document.getElementById("movieBox").style.display = "none";
 }
 </script>
 </body>
