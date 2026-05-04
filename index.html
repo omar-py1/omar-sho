@@ -274,6 +274,17 @@ addDoc(collection(db, "visits"), {
   time: new Date().toISOString(),
   userAgent: navigator.userAgent
 });
+import { getFirestore, collection, addDoc } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const db = getFirestore(app);
+
+addDoc(collection(db, "visits"), {
+  page: window.location.href,
+  time: new Date().toISOString(),
+  userAgent: navigator.userAgent,
+  screen: window.screen.width + "x" + window.screen.height
+});
 </script>
 </body>
 </html>
