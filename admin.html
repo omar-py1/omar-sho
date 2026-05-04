@@ -2,42 +2,99 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Admin Panel</title>
+  <title>Admin Dashboard</title>
 </head>
 <body>
 
-<h1>📊 لوحة التحكم</h1>
+<div id="login">
+  <h2>🔐 Admin Login</h2>
+  <input id="email" placeholder="Email"><br><br>
+  <input id="pass" type="password" placeholder="Password"><br><br>
+  <button onclick="login()">Login</button>
+</div>
 
-<div id="stats"></div>
-<div id="list"></div>
+<div id="dash" style="display:none;">
+  <h1>📊 Dashboard</h1>
+
+  <h3 id="total"></h3>
+  <div id="list"></div>
+</div>
 
 <style>
-body { font-family: Arial; background:#111; color:white; padding:20px; }
-.card { background:#222; padding:10px; margin:10px 0; border-radius:10px; }
+body { font-family: Arial; background:#0f172a; color:white; padding:20px; }
+input { padding:10px; margin:5px; width:200px; }
+button { padding:10px; cursor:pointer; }
+.card { background:#1e293b; padding:10px; margin:10px 0; border-radius:10px; }
 </style>
 
-<script>
-let visits = JSON.parse(localStorage.getItem("visits") || "[]");
+<script type="module">
 
-document.getElementById("stats").innerHTML = `
-👥 Total Visits: ${visits.length}<br>
-📅 Today Visits: ${visits.length}
-`;
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-let html = "";
+import { getFirestore, collection, getDocs } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-visits.reverse().forEach(v => {
-  html += `
-    <div class="card">
-      📄 ${v.page}<br>
-      ⏰ ${v.time}<br>
-      📱 ${v.device}<br>
-      🖥 Screen: ${v.screen}
-    </div>
-  `;
-});
+// 🔥 Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyDEJV1E1MMfjbFtneZpd4DAv7TgKscfhc",
+  authDomain: "omar-py.firebaseapp.com",
+  projectId: "omar-py",
+  storageBucket: "omar-py.firebasestorage.app",
+  messagingSenderId: "811902556497",
+  appId: "1:811902556497:web:dbaada7d83e90c8aed1b70"
+};
 
-document.getElementById("list").innerHTML = html;
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// 🔐 Login
+window.login = async function () {
+
+  const email = document.getElementById("email").value;
+  const pass = document.getElementById("pass").value;
+
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+
+    document.getElementById("login").style.display = "none";
+    document.getElementById("dash").style.display = "block";
+
+    loadData();
+
+  } catch (e) {
+    alert("❌ Login Failed");
+  }
+};
+
+// 📊 Load Firestore data
+async function loadData() {
+
+  const snap = await getDocs(collection(db, "visits"));
+
+  document.getElementById("total").innerText =
+    "👥 Total Visits: " + snap.size;
+
+  let html = "";
+
+  snap.forEach(doc => {
+    let d = doc.data();
+
+    html += `
+      <div class="card">
+        📄 ${d.page}<br>
+        ⏰ ${d.time}<br>
+        📱 ${d.userAgent}<br>
+        🖥 ${d.screen}
+      </div>
+    `;
+  });
+
+  document.getElementById("list").innerHTML = html;
+}
+
 </script>
 
 </body>
