@@ -8,8 +8,10 @@
 
 <div id="login">
   <h2>🔐 Admin Login</h2>
-  <input id="User" placeholder="omarcash333@gmail.com"><br><br>
-  <input id="pass" type="omar1omar2" placeholder="Password"><br><br>
+
+  <input id="email" placeholder="Email"><br><br>
+  <input id="pass" type="password" placeholder="Password"><br><br>
+
   <button onclick="login()">Login</button>
 </div>
 
@@ -30,13 +32,12 @@ button { padding:10px; cursor:pointer; }
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } 
+import { getAuth, signInWithEmailAndPassword }
 from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-import { getFirestore, collection, getDocs } 
+import { getFirestore, collection, getDocs }
 from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// 🔥 Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyDEJV1E1MMfjbFtneZpd4DAv7TgKscfhc",
   authDomain: "omar-py.firebaseapp.com",
@@ -65,11 +66,11 @@ window.login = async function () {
     loadData();
 
   } catch (e) {
-    alert("❌ Login Failed");
+    alert("❌ Login Failed: " + e.message);
   }
 };
 
-// 📊 Load Firestore data
+// 📊 Load data
 async function loadData() {
 
   const snap = await getDocs(collection(db, "visits"));
