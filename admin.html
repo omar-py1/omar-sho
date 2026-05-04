@@ -6,7 +6,6 @@
 </head>
 <body>
 
-<!-- 🔐 حماية بسيطة -->
 <script>
 if (prompt("Password") !== "1234") {
   document.body.innerHTML = "<h1>Access Denied</h1>";
@@ -14,7 +13,7 @@ if (prompt("Password") !== "1234") {
 }
 </script>
 
-<h1>📊 لوحة التحكم</h1>
+<h1>📊 Admin Dashboard</h1>
 
 <h2 id="total">Loading...</h2>
 <h3 id="today"></h3>
@@ -22,8 +21,9 @@ if (prompt("Password") !== "1234") {
 <div id="list"></div>
 
 <style>
-body { font-family: Arial; background:#111; color:white; padding:20px; }
-.card { background:#222; padding:10px; margin:10px 0; border-radius:10px; }
+body { font-family: Arial; background:#0f0f0f; color:white; padding:20px; }
+.card { background:#1e1e1e; padding:10px; margin:10px 0; border-radius:10px; }
+h1 { color:#00ffcc; }
 </style>
 
 <script type="module">
@@ -31,7 +31,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDEJV1E1MMfjbFtneZpd4DAV7TgKscfhc",
+  apiKey: "AIzaSyDEJV1E1MMfjbFtneZpd4DAv7TgKscfhc",
   authDomain: "omar-py.firebaseapp.com",
   projectId: "omar-py",
   storageBucket: "omar-py.firebasestorage.app",
@@ -44,8 +44,8 @@ const db = getFirestore(app);
 
 const snapshot = await getDocs(collection(db, "visits"));
 
-let total = snapshot.size;
-document.getElementById("total").innerText = "👥 Total Visits: " + total;
+document.getElementById("total").innerText =
+"👥 Total Visits: " + snapshot.size;
 
 let today = new Date().toISOString().split("T")[0];
 let todayCount = 0;
