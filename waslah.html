@@ -16,6 +16,14 @@ body { font-family: Arial; background: #f0f2f5; margin: 0; }
 <div class="post">
 <h3>عمر أيوب</h3>
 <p>أهلاً بكم في وصلة! 🎉</p>
+<button class="like-btn" onclick="like(this)">❤️ إعجاب <span>0</span></button>
 </div>
+<script>
+function like(btn) {
+  btn.classList.toggle('liked');
+  let n = parseInt(btn.querySelector('span').innerText);
+  btn.querySelector('span').innerText = btn.classList.contains('liked') ? n+1 : n-1;
+}
+</script>
 </body>
 </html>
