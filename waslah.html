@@ -17,12 +17,27 @@ body { font-family: Arial; background: #f0f2f5; margin: 0; }
 <h3>عمر أيوب</h3>
 <p>أهلاً بكم في وصلة! 🎉</p>
 <button class="like-btn" onclick="like(this)">❤️ إعجاب <span>0</span></button>
+<div style="margin-top:10px;">
+  <input id="comment" placeholder="اكتب تعليق..." style="width:70%;padding:8px;border:1px solid #ddd;border-radius:8px;">
+  <button onclick="addComment()" style="padding:8px 12px;background:#1877F2;color:white;border:none;border-radius:8px;">إرسال</button>
+  <div id="comments"></div>
 </div>
+</div>
+
 <script>
 function like(btn) {
   btn.classList.toggle('liked');
   let n = parseInt(btn.querySelector('span').innerText);
   btn.querySelector('span').innerText = btn.classList.contains('liked') ? n+1 : n-1;
+}
+function addComment() {
+  let text = document.getElementById('comment').value;
+  if(!text) return;
+  let div = document.createElement('div');
+  div.style = "padding:8px;border-top:1px solid #eee;margin-top:5px;";
+  div.innerHTML = '<b>زائر:</b> ' + text;
+  document.getElementById('comments').appendChild(div);
+  document.getElementById('comment').value = '';
 }
 </script>
 </body>
