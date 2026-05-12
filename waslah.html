@@ -107,6 +107,11 @@ button {
 </div>
 
 <script type="module">
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
@@ -131,7 +136,22 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
+// 👇 هنا تحط كود تسجيل الدخول
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    document.body.innerHTML = `
+      <div style="text-align:center;margin-top:100px;">
+        <h2>لازم تسجل دخول</h2>
+        <button onclick="login()">تسجيل دخول Google</button>
+      </div>
+    `;
+  } else {
+    loadPosts();
+  }
+});
 const userId = getUserId();
 
 // 🆔 user id ثابت
@@ -263,7 +283,9 @@ window.showTab = function(tab){
 };
 
 loadPosts();
-
+window.login = async function () {
+  await signInWithPopup(auth, provider);
+};
 </script>
 
 </body>
