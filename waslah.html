@@ -26,13 +26,16 @@ body { font-family: Arial; background:#f0f2f5; margin:0; }
   border-radius:10px;
 }
 
-input, button {
-  padding:8px;
-  margin:5px 0;
+input {
   width:100%;
+  padding:8px;
+  margin-top:5px;
 }
 
 button {
+  padding:8px;
+  margin-top:5px;
+  width:100%;
   background:#1877F2;
   color:white;
   border:none;
@@ -41,8 +44,8 @@ button {
 }
 
 .comment {
-  border-top:1px solid #eee;
   padding:6px;
+  border-top:1px solid #eee;
   margin-top:5px;
 }
 </style>
@@ -54,14 +57,12 @@ button {
 
 <div class="container">
 
-<!-- إنشاء بوست -->
 <div class="post">
-<h3>إنشاء منشور</h3>
+<h3>إنشاء بوست</h3>
 <input id="postText" placeholder="اكتب منشور...">
 <button onclick="addPost()">نشر</button>
 </div>
 
-<!-- عرض البوستات -->
 <div id="posts"></div>
 
 </div>
@@ -76,10 +77,11 @@ import {
   getDocs,
   doc,
   updateDoc,
+  increment,
   arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// 🔥 Firebase
+// 🔥 Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyDEJV1E1MMfjbFtneZpd4DAaV7TgKscfhc",
   authDomain: "omar-py.firebaseapp.com",
@@ -100,6 +102,7 @@ window.addPost = async function(){
   await addDoc(collection(db,"posts"),{
     text:text,
     likes:0,
+    likedBy:[],
     comments:[]
   });
 
@@ -107,11 +110,21 @@ window.addPost = async function(){
   loadPosts();
 }
 
-// 🟢 لايك
-window.likePost = async function(id, likes){
+// 🟢 لايك احترافي (مرة واحدة فقط)
+window.likePost = async function(id, post){
+
+  let userId = "user";
+
+  if(post.likedBy && post.likedBy.includes(userId)){
+    alert("عملت لايك قبل كده 👍");
+    return;
+  }
+
   await updateDoc(doc(db,"posts",id),{
-    likes: likes + 1
+    likes: (post.likes || 0) + 1,
+    likedBy: arrayUnion(userId)
   });
+
   loadPosts();
 }
 
@@ -142,7 +155,7 @@ async function loadPosts(){
       <div class="post">
         <p>${p.text}</p>
 
-        <button onclick="likePost('${d.id}',${p.likes || 0})">
+        <button onclick='likePost("${d.id}", ${JSON.stringify(p)})'>
           ❤️ ${p.likes || 0}
         </button>
 
