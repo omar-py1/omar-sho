@@ -3,28 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Waslah Social Pro</title>
+<title>Waslah Facebook Lite</title>
 
 <style>
 body{margin:0;font-family:Arial;background:#f0f2f5}
-.header{background:#1877F2;color:white;padding:15px;text-align:center;font-size:20px}
+.header{background:#1877F2;color:white;padding:12px;text-align:center}
+.nav{display:flex;justify-content:space-around;background:white;position:sticky;top:0}
+.nav button{background:none;border:none;font-weight:bold;padding:10px}
 .page{display:none;max-width:600px;margin:auto;padding:10px}
 .card{background:white;padding:10px;margin:10px 0;border-radius:10px}
-input,button{width:100%;padding:8px;margin-top:5px;box-sizing:border-box}
+input,button{width:100%;padding:8px;margin-top:5px}
 button{background:#1877F2;color:white;border:none;border-radius:6px;cursor:pointer}
-.nav{display:flex;justify-content:space-around;background:white;position:sticky;top:0}
-.nav button{background:none;border:none;font-weight:bold}
-video{width:100%;border-radius:10px}
+.small{font-size:12px;color:gray}
 </style>
 </head>
 
 <body>
 
-<div class="header">وصلة 🔥 Social Pro</div>
+<div class="header">Waslah Social 🔵</div>
 
 <!-- LOGIN -->
-<div id="loginPage" class="page" style="display:block">
-  <h3>تسجيل دخول</h3>
+<div id="login" class="page" style="display:block">
+  <h3>Login</h3>
   <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
   <button onclick="signup()">Signup</button>
@@ -38,28 +38,37 @@ video{width:100%;border-radius:10px}
 <button onclick="show('home')">Posts</button>
 <button onclick="show('chat')">Chat</button>
 <button onclick="show('reels')">Reels</button>
+<button onclick="show('profile')">Profile</button>
 <button onclick="logout()">Logout</button>
 </div>
 
-<!-- POSTS -->
+<!-- HOME -->
 <div id="home" class="page">
-  <input id="postText" placeholder="اكتب منشور">
-  <button onclick="addPost()">نشر</button>
+  <input id="postText" placeholder="What's on your mind?">
+  <button onclick="addPost()">Post</button>
   <div id="feed"></div>
 </div>
 
 <!-- CHAT -->
 <div id="chat" class="page">
-  <input id="msgText" placeholder="رسالة">
-  <button onclick="sendMsg()">إرسال</button>
+  <input id="msgText" placeholder="Message">
+  <button onclick="sendMsg()">Send</button>
   <div id="msgs"></div>
 </div>
 
 <!-- REELS -->
 <div id="reels" class="page">
-  <input id="videoUrl" placeholder="رابط فيديو">
-  <button onclick="addReel()">رفع</button>
+  <input id="videoUrl" placeholder="Video URL">
+  <button onclick="addReel()">Upload</button>
   <div id="reelsBox"></div>
+</div>
+
+<!-- PROFILE -->
+<div id="profile" class="page">
+  <div class="card">
+    <h3>My Profile</h3>
+    <div id="myInfo"></div>
+  </div>
 </div>
 
 </div>
@@ -68,8 +77,7 @@ video{width:100%;border-radius:10px}
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-getAuth,
-createUserWithEmailAndPassword,
+getAuth, createUserWithEmailAndPassword,
 signInWithEmailAndPassword,
 onAuthStateChanged,
 signOut
@@ -77,140 +85,124 @@ signOut
 
 import {
 getFirestore,
-collection,
-addDoc,
-onSnapshot,
-query,
-orderBy
+collection, addDoc,
+onSnapshot, doc, updateDoc, arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-/* 🔥 Firebase Config */
+/* 🔥 Firebase */
 const firebaseConfig = {
-apiKey: "PUT_YOUR_KEY",
+apiKey: "YOUR_API_KEY",
 authDomain: "omar-py.firebaseapp.com",
 projectId: "omar-py",
 storageBucket: "omar-py.appspot.com",
 messagingSenderId: "811902556497",
-appId: "PUT_YOUR_APP_ID"
+appId: "YOUR_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* UI */
-const loginPage = document.getElementById("loginPage");
+const loginDiv = document.getElementById("login");
 const appDiv = document.getElementById("app");
-const feed = document.getElementById("feed");
-const msgs = document.getElementById("msgs");
-const reelsBox = document.getElementById("reelsBox");
 
-/* AUTH STATE */
-onAuthStateChanged(auth,(user)=>{
-  if(user){
-    loginPage.style.display="none";
+let currentUser = null;
+
+/* AUTH */
+onAuthStateChanged(auth,(u)=>{
+  if(u){
+    currentUser = u;
+    loginDiv.style.display="none";
     appDiv.style.display="block";
-    loadPosts();
-    loadMsgs();
-    loadReels();
+    loadAll();
   }else{
-    loginPage.style.display="block";
+    loginDiv.style.display="block";
     appDiv.style.display="none";
   }
 });
 
-/* AUTH */
-window.signup = async ()=>{
-  await createUserWithEmailAndPassword(auth,email.value,password.value);
-};
-
-window.login = async ()=>{
-  await signInWithEmailAndPassword(auth,email.value,password.value);
-};
-
+/* LOGIN */
+window.signup = ()=>createUserWithEmailAndPassword(auth,email.value,password.value);
+window.login = ()=>signInWithEmailAndPassword(auth,email.value,password.value);
 window.logout = ()=>signOut(auth);
 
 /* NAV */
-window.show = (page)=>{
-  document.querySelectorAll(".page").forEach(p=>p.style.display="none");
-  document.getElementById(page).style.display="block";
+window.show = (p)=>{
+  document.querySelectorAll(".page").forEach(e=>e.style.display="none");
+  document.getElementById(p).style.display="block";
 };
 
-/* POSTS REALTIME */
-function loadPosts(){
-  onSnapshot(query(collection(db,"posts")), (snap)=>{
-    let html="";
-    snap.forEach(d=>{
-      html+=`
-        <div class="card">
-          ${d.data().text}
-          <br>
-          <small>${d.data().user}</small>
-        </div>
-      `;
-    });
-    feed.innerHTML=html;
-  });
-}
-
+/* POSTS */
 window.addPost = async ()=>{
-  if(!auth.currentUser) return;
-
   await addDoc(collection(db,"posts"),{
-    text: postText.value,
-    user: auth.currentUser.email
+    text:postText.value,
+    user:currentUser.email,
+    likes:0,
+    comments:[]
   });
-
   postText.value="";
 };
 
-/* CHAT REALTIME */
-function loadMsgs(){
-  onSnapshot(collection(db,"messages"), (snap)=>{
-    let html="";
+function loadPosts(){
+  onSnapshot(collection(db,"posts"),snap=>{
+    feed.innerHTML="";
     snap.forEach(d=>{
-      html+=`<div class="card">${d.data().user}: ${d.data().text}</div>`;
+      feed.innerHTML += `
+        <div class="card">
+          ${d.data().text}
+          <div class="small">${d.data().user}</div>
+        </div>
+      `;
     });
-    msgs.innerHTML=html;
   });
 }
 
+/* CHAT */
 window.sendMsg = async ()=>{
-  if(!auth.currentUser) return;
-
   await addDoc(collection(db,"messages"),{
-    text: msgText.value,
-    user: auth.currentUser.email
+    text:msgText.value,
+    user:currentUser.email
   });
-
   msgText.value="";
 };
 
-/* REELS REALTIME */
-function loadReels(){
-  onSnapshot(collection(db,"reels"), (snap)=>{
-    let html="";
+function loadMsgs(){
+  onSnapshot(collection(db,"messages"),snap=>{
+    msgs.innerHTML="";
     snap.forEach(d=>{
-      html+=`
+      msgs.innerHTML += `<div class="card">${d.data().user}: ${d.data().text}</div>`;
+    });
+  });
+}
+
+/* REELS */
+window.addReel = async ()=>{
+  await addDoc(collection(db,"reels"),{
+    url:videoUrl.value,
+    user:currentUser.email
+  });
+  videoUrl.value="";
+};
+
+function loadReels(){
+  onSnapshot(collection(db,"reels"),snap=>{
+    reelsBox.innerHTML="";
+    snap.forEach(d=>{
+      reelsBox.innerHTML += `
         <div class="card">
           <video src="${d.data().url}" controls></video>
         </div>
       `;
     });
-    reelsBox.innerHTML=html;
   });
 }
 
-window.addReel = async ()=>{
-  if(!auth.currentUser) return;
-
-  await addDoc(collection(db,"reels"),{
-    url: videoUrl.value,
-    user: auth.currentUser.email
-  });
-
-  videoUrl.value="";
-};
+/* LOAD ALL */
+function loadAll(){
+  loadPosts();
+  loadMsgs();
+  loadReels();
+}
 
 </script>
 
