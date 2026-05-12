@@ -108,7 +108,20 @@ appId: "YOUR_APP_ID"
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const loginDiv = document.getElementById("login");
+const appDiv = document.getElementById("app");
 
+const email = document.getElementById("email");
+const password = document.getElementById("password");
+
+const postText = document.getElementById("postText");
+const msgText = document.getElementById("msgText");
+const videoUrl = document.getElementById("videoUrl");
+
+const feed = document.getElementById("feed");
+const msgs = document.getElementById("msgs");
+const reelsBox = document.getElementById("reelsBox");
+const myProfile = document.getElementById("myProfile");
 const loginDiv = document.getElementById("login");
 const appDiv = document.getElementById("app");
 
