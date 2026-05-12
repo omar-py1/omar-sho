@@ -7,53 +7,18 @@
 
 <style>
 body { font-family: Arial; background:#f0f2f5; margin:0; }
-
-.header {
-  background:#1877F2;
-  color:white;
-  padding:15px;
-  text-align:center;
-  font-size:24px;
-  font-weight:bold;
-}
-
+.header { background:#1877F2; color:white; padding:15px; text-align:center; font-size:24px; font-weight:bold; }
 .container { max-width:600px; margin:auto; }
-
-.post {
-  background:white;
-  margin:10px;
-  padding:15px;
-  border-radius:10px;
-}
-
-input {
-  width:100%;
-  padding:8px;
-  margin-top:5px;
-}
-
-button {
-  padding:8px;
-  margin-top:5px;
-  width:100%;
-  background:#1877F2;
-  color:white;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-}
-
-.comment {
-  padding:6px;
-  border-top:1px solid #eee;
-  margin-top:5px;
-}
+.post { background:white; margin:10px; padding:15px; border-radius:10px; }
+input, button { width:100%; padding:8px; margin-top:5px; }
+button { background:#1877F2; color:white; border:none; border-radius:6px; cursor:pointer; }
+.comment { padding:6px; border-top:1px solid #eee; margin-top:5px; }
 </style>
 </head>
 
 <body>
 
-<div class="header">وصلة 🔥 Social</div>
+<div class="header">وصلة 🔥</div>
 
 <div class="container">
 
@@ -77,11 +42,9 @@ import {
   getDocs,
   doc,
   updateDoc,
-  increment,
   arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// 🔥 Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyDEJV1E1MMfjbFtneZpd4DAaV7TgKscfhc",
   authDomain: "omar-py.firebaseapp.com",
@@ -94,7 +57,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🟢 إضافة بوست
+// 🟢 إنشاء بوست
 window.addPost = async function(){
   let text = document.getElementById("postText").value;
   if(!text) return;
@@ -110,10 +73,15 @@ window.addPost = async function(){
   loadPosts();
 }
 
-// 🟢 لايك احترافي (مرة واحدة فقط)
+// 🟢 لايك احترافي محفوظ
 window.likePost = async function(id, post){
 
-  let userId = "user";
+  let userId = localStorage.getItem("uid");
+
+  if(!userId){
+    userId = crypto.randomUUID();
+    localStorage.setItem("uid", userId);
+  }
 
   if(post.likedBy && post.likedBy.includes(userId)){
     alert("عملت لايك قبل كده 👍");
@@ -142,7 +110,7 @@ window.addComment = async function(id){
   loadPosts();
 }
 
-// 🟢 تحميل البوستات
+// 🟢 عرض البوستات
 async function loadPosts(){
   let snap = await getDocs(collection(db,"posts"));
 
