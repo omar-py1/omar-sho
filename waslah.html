@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Waslah Social</title>
+<title>Waslah Social Pro</title>
 
 <style>
 body{margin:0;font-family:Arial;background:#f0f2f5}
@@ -11,7 +11,7 @@ body{margin:0;font-family:Arial;background:#f0f2f5}
 .page{display:none;max-width:600px;margin:auto;padding:10px}
 .card{background:white;padding:10px;margin:10px 0;border-radius:10px}
 input,button{width:100%;padding:8px;margin-top:5px;box-sizing:border-box}
-button{background:#1877F2;color:white;border:none;border-radius:6px}
+button{background:#1877F2;color:white;border:none;border-radius:6px;cursor:pointer}
 .nav{display:flex;justify-content:space-around;background:white;position:sticky;top:0}
 .nav button{background:none;border:none;font-weight:bold}
 video{width:100%;border-radius:10px}
@@ -20,7 +20,7 @@ video{width:100%;border-radius:10px}
 
 <body>
 
-<div class="header">وصلة 🔥 Social</div>
+<div class="header">وصلة 🔥 Social Pro</div>
 
 <!-- LOGIN -->
 <div id="loginPage" class="page" style="display:block">
@@ -32,16 +32,16 @@ video{width:100%;border-radius:10px}
 </div>
 
 <!-- APP -->
-<div id="app" style="display:none">
+<div id="app">
 
 <div class="nav">
-<button onclick="show('home')">Home</button>
+<button onclick="show('home')">Posts</button>
 <button onclick="show('chat')">Chat</button>
 <button onclick="show('reels')">Reels</button>
 <button onclick="logout()">Logout</button>
 </div>
 
-<!-- HOME -->
+<!-- POSTS -->
 <div id="home" class="page">
   <input id="postText" placeholder="اكتب منشور">
   <button onclick="addPost()">نشر</button>
@@ -79,32 +79,37 @@ import {
 getFirestore,
 collection,
 addDoc,
-getDocs
+onSnapshot,
+query,
+orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 /* 🔥 Firebase Config */
 const firebaseConfig = {
-apiKey: "YOUR_API_KEY",
+apiKey: "PUT_YOUR_KEY",
 authDomain: "omar-py.firebaseapp.com",
 projectId: "omar-py",
 storageBucket: "omar-py.appspot.com",
 messagingSenderId: "811902556497",
-appId: "YOUR_APP_ID"
+appId: "PUT_YOUR_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let user = null;
+/* UI */
+const loginPage = document.getElementById("loginPage");
+const appDiv = document.getElementById("app");
+const feed = document.getElementById("feed");
+const msgs = document.getElementById("msgs");
+const reelsBox = document.getElementById("reelsBox");
 
-/* ================= AUTH ================= */
-onAuthStateChanged(auth,(u)=>{
-  if(u){
-    user = u;
+/* AUTH STATE */
+onAuthStateChanged(auth,(user)=>{
+  if(user){
     loginPage.style.display="none";
     appDiv.style.display="block";
-    show("home");
     loadPosts();
     loadMsgs();
     loadReels();
@@ -114,6 +119,7 @@ onAuthStateChanged(auth,(u)=>{
   }
 });
 
+/* AUTH */
 window.signup = async ()=>{
   await createUserWithEmailAndPassword(auth,email.value,password.value);
 };
@@ -124,93 +130,87 @@ window.login = async ()=>{
 
 window.logout = ()=>signOut(auth);
 
-/* ================= NAV ================= */
-window.show = (p)=>{
-  document.querySelectorAll(".page").forEach(x=>x.style.display="none");
-  document.getElementById(p).style.display="block";
+/* NAV */
+window.show = (page)=>{
+  document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+  document.getElementById(page).style.display="block";
 };
 
-/* ================= POSTS ================= */
+/* POSTS REALTIME */
+function loadPosts(){
+  onSnapshot(query(collection(db,"posts")), (snap)=>{
+    let html="";
+    snap.forEach(d=>{
+      html+=`
+        <div class="card">
+          ${d.data().text}
+          <br>
+          <small>${d.data().user}</small>
+        </div>
+      `;
+    });
+    feed.innerHTML=html;
+  });
+}
+
 window.addPost = async ()=>{
-  if(!postText.value) return;
+  if(!auth.currentUser) return;
 
   await addDoc(collection(db,"posts"),{
-    text:postText.value,
-    user:user.email
+    text: postText.value,
+    user: auth.currentUser.email
   });
 
   postText.value="";
-  loadPosts();
 };
 
-async function loadPosts(){
-  let snap = await getDocs(collection(db,"posts"));
-  let html="";
-
-  snap.forEach(d=>{
-    html+=`
-      <div class="card">
-        ${d.data().text}
-        <br>
-        <small>${d.data().user}</small>
-      </div>
-    `;
+/* CHAT REALTIME */
+function loadMsgs(){
+  onSnapshot(collection(db,"messages"), (snap)=>{
+    let html="";
+    snap.forEach(d=>{
+      html+=`<div class="card">${d.data().user}: ${d.data().text}</div>`;
+    });
+    msgs.innerHTML=html;
   });
-
-  feed.innerHTML=html;
 }
 
-/* ================= CHAT ================= */
 window.sendMsg = async ()=>{
-  if(!msgText.value) return;
+  if(!auth.currentUser) return;
 
   await addDoc(collection(db,"messages"),{
-    text:msgText.value,
-    user:user.email
+    text: msgText.value,
+    user: auth.currentUser.email
   });
 
   msgText.value="";
-  loadMsgs();
 };
 
-async function loadMsgs(){
-  let snap = await getDocs(collection(db,"messages"));
-  let html="";
-
-  snap.forEach(d=>{
-    html+=`<div class="card">${d.data().user}: ${d.data().text}</div>`;
+/* REELS REALTIME */
+function loadReels(){
+  onSnapshot(collection(db,"reels"), (snap)=>{
+    let html="";
+    snap.forEach(d=>{
+      html+=`
+        <div class="card">
+          <video src="${d.data().url}" controls></video>
+        </div>
+      `;
+    });
+    reelsBox.innerHTML=html;
   });
-
-  msgs.innerHTML=html;
 }
 
-/* ================= REELS ================= */
 window.addReel = async ()=>{
-  if(!videoUrl.value) return;
+  if(!auth.currentUser) return;
 
   await addDoc(collection(db,"reels"),{
-    url:videoUrl.value,
-    user:user.email
+    url: videoUrl.value,
+    user: auth.currentUser.email
   });
 
   videoUrl.value="";
-  loadReels();
 };
-
-async function loadReels(){
-  let snap = await getDocs(collection(db,"reels"));
-  let html="";
-
-  snap.forEach(d=>{
-    html+=`
-      <div class="card">
-        <video src="${d.data().url}" controls></video>
-      </div>
-    `;
-  });
-
-  reelsBox.innerHTML=html;
-}
 
 </script>
 
