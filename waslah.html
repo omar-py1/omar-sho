@@ -3,289 +3,204 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>وصلة - Social</title>
+<title>Waslah Social</title>
 
 <style>
-body {
-  font-family: Arial;
-  margin:0;
-  background:#f0f2f5;
-}
+body { font-family: Arial; margin:0; background:#f0f2f5; }
+.header { background:#1877F2; color:white; padding:15px; text-align:center; }
 
-.header {
-  background:#1877F2;
-  color:white;
-  padding:15px;
-  text-align:center;
-  font-size:22px;
-  font-weight:bold;
-}
+.nav { display:flex; justify-content:space-around; background:#fff; padding:10px; position:sticky; top:0; }
 
-.nav {
-  display:flex;
-  justify-content:space-around;
-  background:white;
-  padding:10px;
-  position:sticky;
-  top:0;
-}
+.nav button { border:none; background:none; font-weight:bold; cursor:pointer; }
 
-.nav button {
-  border:none;
-  background:none;
-  font-weight:bold;
-  cursor:pointer;
-}
+.page { display:none; padding:10px; max-width:600px; margin:auto; }
 
-.container {
-  max-width:600px;
-  margin:auto;
-  padding:10px;
-}
+.post, .card { background:#fff; padding:10px; margin:10px 0; border-radius:10px; }
 
-.post {
-  background:white;
-  padding:15px;
-  margin:10px 0;
-  border-radius:10px;
-}
+input, button { width:100%; padding:8px; margin-top:5px; }
 
-input, button {
-  width:100%;
-  padding:8px;
-  margin-top:5px;
-  border-radius:6px;
-  box-sizing:border-box;
-}
+button { background:#1877F2; color:white; border:none; border-radius:6px; }
 
-button {
-  background:#1877F2;
-  color:white;
-  border:none;
-  cursor:pointer;
-}
-
-.comment {
-  font-size:13px;
-  padding:5px;
-  border-top:1px solid #eee;
-  margin-top:5px;
-}
-
-.smallBtn {
-  width:auto;
-  padding:5px 10px;
-  margin-top:5px;
-}
+video { width:100%; border-radius:10px; }
 </style>
 </head>
 
 <body>
 
-<div class="header">وصلة 🔥 Social</div>
+<div class="header">وصلة 🔥</div>
+
+<!-- LOGIN -->
+<div id="loginPage" class="page" style="display:block;">
+  <h3>تسجيل دخول</h3>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <button onclick="signup()">Sign Up</button>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;">
 
 <div class="nav">
-<button onclick="showTab('home')">Home</button>
-<button onclick="showTab('posts')">Posts</button>
-<button onclick="showTab('messages')">Messages</button>
-<button onclick="showTab('reels')">Reels</button>
-<button onclick="showTab('videos')">Videos</button>
+<button onclick="show('home')">Home</button>
+<button onclick="show('chat')">Chat</button>
+<button onclick="show('reels')">Reels</button>
+<button onclick="logout()">Logout</button>
 </div>
 
-<div class="container">
-
-<!-- إنشاء بوست -->
-<div id="createBox" class="post">
-<h3>إنشاء بوست</h3>
-<input id="postText" placeholder="اكتب منشور...">
-<button onclick="addPost()">نشر</button>
+<!-- HOME -->
+<div id="home" class="page">
+  <h3>Post</h3>
+  <input id="postText" placeholder="اكتب شيء">
+  <button onclick="addPost()">نشر</button>
+  <div id="posts"></div>
 </div>
 
-<!-- عرض البوستات -->
-<div id="posts"></div>
+<!-- CHAT -->
+<div id="chat" class="page">
+  <h3>Chat</h3>
+  <input id="msg" placeholder="رسالة">
+  <button onclick="sendMsg()">إرسال</button>
+  <div id="msgs"></div>
+</div>
+
+<!-- REELS -->
+<div id="reels" class="page">
+  <h3>Reels</h3>
+  <input id="videoUrl" placeholder="رابط فيديو">
+  <button onclick="addReel()">نشر فيديو</button>
+  <div id="reelsBox"></div>
+</div>
 
 </div>
 
 <script type="module">
-import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } 
-from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  doc,
-  updateDoc,
-  getDoc,
-  arrayUnion
+getAuth,
+createUserWithEmailAndPassword,
+signInWithEmailAndPassword,
+onAuthStateChanged,
+signOut
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+getFirestore,
+collection,
+addDoc,
+getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDEJV1E1MMfjbFtneZpd4DAaV7TgKscfhc",
-  authDomain: "omar-py.firebaseapp.com",
-  projectId: "omar-py",
-  storageBucket: "omar-py.firebasestorage.app",
-  messagingSenderId: "811902556497",
-  appId: "1:811902556497:web:dbaada7d83e90c8aed1b70"
+apiKey: "YOUR_KEY",
+authDomain: "omar-py.firebaseapp.com",
+projectId: "omar-py",
+storageBucket: "omar-py.appspot.com",
+messagingSenderId: "811902556497",
+appId: "YOUR_APP"
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getFirestore(app);
 
-// 👇 هنا تحط كود تسجيل الدخول
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    document.body.innerHTML = `
-      <div style="text-align:center;margin-top:100px;">
-        <h2>لازم تسجل دخول</h2>
-        <button onclick="login()">تسجيل دخول Google</button>
-      </div>
-    `;
-  } else {
+let currentUser = null;
+
+// AUTH
+onAuthStateChanged(auth, (user)=>{
+  if(user){
+    currentUser = user;
+    document.getElementById("loginPage").style.display="none";
+    document.getElementById("app").style.display="block";
+    show("home");
     loadPosts();
+    loadMsgs();
+    loadReels();
+  } else {
+    document.getElementById("loginPage").style.display="block";
+    document.getElementById("app").style.display="none";
   }
 });
-const userId = getUserId();
 
-// 🆔 user id ثابت
-function getUserId(){
-  let id = localStorage.getItem("uid");
-  if(!id){
-    id = crypto.randomUUID();
-    localStorage.setItem("uid", id);
-  }
-  return id;
+window.signup = async ()=>{
+  await createUserWithEmailAndPassword(auth,
+  email.value, password.value);
 }
 
-// =======================
-// 🟢 إنشاء بوست
-// =======================
-window.addPost = async function () {
-  let text = document.getElementById("postText").value;
-  if (!text) return;
-
-  await addDoc(collection(db, "posts"), {
-    text,
-    likes: 0,
-    likedBy: [],
-    comments: []
-  });
-
-  document.getElementById("postText").value = "";
-  loadPosts();
-};
-
-// =======================
-// ❤️ لايك (toggle احترافي)
-// =======================
-window.likePost = async function (id) {
-
-  const ref = doc(db, "posts", id);
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) return;
-
-  const post = snap.data();
-  const likedBy = post.likedBy || [];
-
-  const liked = likedBy.includes(userId);
-
-  if (liked) {
-    await updateDoc(ref, {
-      likes: Math.max((post.likes || 1) - 1, 0),
-      likedBy: likedBy.filter(u => u !== userId)
-    });
-  } else {
-    await updateDoc(ref, {
-      likes: (post.likes || 0) + 1,
-      likedBy: arrayUnion(userId)
-    });
-  }
-
-  loadPosts();
-};
-
-// =======================
-// 💬 تعليق
-// =======================
-window.addComment = async function (id) {
-
-  let input = document.getElementById("c-" + id);
-  let text = input.value;
-
-  if (!text) return;
-
-  await updateDoc(doc(db, "posts", id), {
-    comments: arrayUnion(text)
-  });
-
-  input.value = "";
-  loadPosts();
-};
-
-// =======================
-// 📦 عرض البوستات
-// =======================
-async function loadPosts() {
-
-  let snap = await getDocs(collection(db, "posts"));
-
-  let html = "";
-
-  snap.forEach(d => {
-
-    let p = d.data();
-
-    html += `
-      <div class="post">
-        <p>${p.text}</p>
-
-        <button onclick="likePost('${d.id}')">
-          ❤️ ${p.likes || 0}
-        </button>
-
-        <input id="c-${d.id}" placeholder="اكتب تعليق...">
-        <button class="smallBtn" onclick="addComment('${d.id}')">إرسال</button>
-    `;
-
-    (p.comments || []).forEach(c => {
-      html += `<div class="comment">💬 ${c}</div>`;
-    });
-
-    html += `</div>`;
-  });
-
-  document.getElementById("posts").innerHTML = html;
+window.login = async ()=>{
+  await signInWithEmailAndPassword(auth,
+  email.value, password.value);
 }
 
-// =======================
-// 📱 تبويبات (واجهة فقط)
-// =======================
-window.showTab = function(tab){
+window.logout = ()=> signOut(auth);
 
-  if(tab === "home"){
-    document.getElementById("createBox").style.display = "block";
-    loadPosts();
-  }
+// NAV
+window.show = (p)=>{
+  document.querySelectorAll(".page").forEach(x=>x.style.display="none");
+  document.getElementById(p).style.display="block";
+}
 
-  if(tab !== "home"){
-    document.getElementById("createBox").style.display = "none";
-    document.getElementById("posts").innerHTML =
-      `<div class="post">📌 هذه الصفحة تحت التطوير: ${tab}</div>`;
-  }
-};
+// POSTS
+window.addPost = async ()=>{
+  await addDoc(collection(db,"posts"),{
+    text: postText.value,
+    user: currentUser.email
+  });
+  postText.value="";
+  loadPosts();
+}
 
-loadPosts();
-window.login = async function () {
-  await signInWithPopup(auth, provider);
-};
+async function loadPosts(){
+  let snap = await getDocs(collection(db,"posts"));
+  let html="";
+  snap.forEach(d=>{
+    html+=`<div class="post">${d.data().text}<br><small>${d.data().user}</small></div>`;
+  });
+  posts.innerHTML=html;
+}
+
+// CHAT
+window.sendMsg = async ()=>{
+  await addDoc(collection(db,"messages"),{
+    text: msg.value,
+    user: currentUser.email
+  });
+  msg.value="";
+  loadMsgs();
+}
+
+async function loadMsgs(){
+  let snap = await getDocs(collection(db,"messages"));
+  let html="";
+  snap.forEach(d=>{
+    html+=`<div class="card">${d.data().user}: ${d.data().text}</div>`;
+  });
+  msgs.innerHTML=html;
+}
+
+// REELS
+window.addReel = async ()=>{
+  await addDoc(collection(db,"reels"),{
+    url: videoUrl.value,
+    user: currentUser.email
+  });
+  videoUrl.value="";
+  loadReels();
+}
+
+async function loadReels(){
+  let snap = await getDocs(collection(db,"reels"));
+  let html="";
+  snap.forEach(d=>{
+    html+=`
+      <div class="card">
+        <video src="${d.data().url}" controls></video>
+      </div>`;
+  });
+  reelsBox.innerHTML=html;
+}
+
 </script>
 
 </body>
