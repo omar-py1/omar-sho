@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Waslah Pro</title>
+<title>Waslah Social</title>
 
 <style>
 body{margin:0;font-family:Arial;background:#f0f2f5}
-.header{background:#1877F2;color:#fff;padding:15px;text-align:center}
+.header{background:#1877F2;color:white;padding:15px;text-align:center}
 .page{display:none;max-width:600px;margin:auto;padding:10px}
-.card{background:#fff;padding:10px;margin:10px 0;border-radius:10px}
-input,button{width:100%;padding:8px;margin-top:5px;border-radius:6px}
-button{background:#1877F2;color:#fff;border:none;cursor:pointer}
-.nav{display:flex;justify-content:space-around;background:#fff;position:sticky;top:0}
-.nav button{background:none;color:#000;font-weight:bold}
+.card{background:white;padding:10px;margin:10px 0;border-radius:10px}
+input,button{width:100%;padding:8px;margin-top:5px;box-sizing:border-box}
+button{background:#1877F2;color:white;border:none;border-radius:6px;cursor:pointer}
+.nav{display:flex;justify-content:space-around;background:white;position:sticky;top:0}
+.nav button{background:none;color:black;font-weight:bold}
 video{width:100%;border-radius:10px}
 </style>
 </head>
@@ -24,15 +24,15 @@ video{width:100%;border-radius:10px}
 
 <!-- LOGIN -->
 <div id="login" class="page" style="display:block;">
-<h3>Login</h3>
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
-<button onclick="login()">Login</button>
-<button onclick="signup()">Signup</button>
+  <h3>تسجيل الدخول</h3>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <button onclick="signup()">Signup</button>
 </div>
 
 <!-- APP -->
-<div id="app">
+<div id="app" style="display:none;">
 
 <div class="nav">
 <button onclick="show('home')">Home</button>
@@ -43,23 +43,23 @@ video{width:100%;border-radius:10px}
 
 <!-- HOME -->
 <div id="home" class="page">
-<input id="postText" placeholder="اكتب منشور">
-<button onclick="addPost()">Post</button>
-<div id="feed"></div>
+  <input id="postText" placeholder="اكتب منشور">
+  <button onclick="addPost()">نشر</button>
+  <div id="feed"></div>
 </div>
 
 <!-- CHAT -->
 <div id="chat" class="page">
-<input id="msg" placeholder="رسالة">
-<button onclick="sendMsg()">Send</button>
-<div id="msgs"></div>
+  <input id="msg" placeholder="رسالة">
+  <button onclick="sendMsg()">إرسال</button>
+  <div id="msgs"></div>
 </div>
 
 <!-- REELS -->
 <div id="reels" class="page">
-<input id="video" placeholder="رابط فيديو">
-<button onclick="addReel()">Upload</button>
-<div id="reelsBox"></div>
+  <input id="video" placeholder="رابط فيديو">
+  <button onclick="addReel()">رفع</button>
+  <div id="reelsBox"></div>
 </div>
 
 </div>
@@ -82,14 +82,14 @@ addDoc,
 getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// 🔥 Firebase
+// 🔥 Firebase Config
 const firebaseConfig = {
-apiKey: "YOUR_KEY",
+apiKey: "YOUR_API_KEY",
 authDomain: "omar-py.firebaseapp.com",
 projectId: "omar-py",
 storageBucket: "omar-py.appspot.com",
 messagingSenderId: "811902556497",
-appId: "YOUR_APP"
+appId: "YOUR_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -98,44 +98,60 @@ const db = getFirestore(app);
 
 let user = null;
 
-// 🔐 AUTH
+/* ======================
+   AUTH
+====================== */
 onAuthStateChanged(auth,(u)=>{
   if(u){
     user=u;
-    login.style.display="none";
+    document.getElementById("login").style.display="none";
     document.getElementById("app").style.display="block";
     show("home");
     loadFeed();
     loadMsgs();
     loadReels();
   }else{
-    login.style.display="block";
+    document.getElementById("login").style.display="block";
     document.getElementById("app").style.display="none";
   }
 });
 
-window.signup=()=>createUserWithEmailAndPassword(auth,email.value,password.value);
-window.login=()=>signInWithEmailAndPassword(auth,email.value,password.value);
-window.logout=()=>signOut(auth);
+window.signup = async ()=>{
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  await createUserWithEmailAndPassword(auth,email,password);
+};
 
-// NAV
-window.show=(p)=>{
+window.login = async ()=>{
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  await signInWithEmailAndPassword(auth,email,password);
+};
+
+window.logout = ()=>signOut(auth);
+
+/* ======================
+   NAV
+====================== */
+window.show = (p)=>{
   document.querySelectorAll(".page").forEach(x=>x.style.display="none");
   document.getElementById(p).style.display="block";
-}
+};
 
-// POSTS
-window.addPost=async()=>{
+/* ======================
+   POSTS
+====================== */
+window.addPost = async ()=>{
   await addDoc(collection(db,"posts"),{
     text:postText.value,
     uid:user.email
   });
   postText.value="";
   loadFeed();
-}
+};
 
 async function loadFeed(){
-  let snap=await getDocs(collection(db,"posts"));
+  let snap = await getDocs(collection(db,"posts"));
   let html="";
   snap.forEach(d=>{
     html+=`<div class="card">${d.data().text}<br><small>${d.data().uid}</small></div>`;
@@ -143,18 +159,20 @@ async function loadFeed(){
   feed.innerHTML=html;
 }
 
-// CHAT
-window.sendMsg=async()=>{
+/* ======================
+   CHAT
+====================== */
+window.sendMsg = async ()=>{
   await addDoc(collection(db,"messages"),{
     text:msg.value,
     uid:user.email
   });
   msg.value="";
   loadMsgs();
-}
+};
 
 async function loadMsgs(){
-  let snap=await getDocs(collection(db,"messages"));
+  let snap = await getDocs(collection(db,"messages"));
   let html="";
   snap.forEach(d=>{
     html+=`<div class="card">${d.data().uid}: ${d.data().text}</div>`;
@@ -162,21 +180,26 @@ async function loadMsgs(){
   msgs.innerHTML=html;
 }
 
-// REELS
-window.addReel=async()=>{
+/* ======================
+   REELS
+====================== */
+window.addReel = async ()=>{
   await addDoc(collection(db,"reels"),{
     url:video.value,
     uid:user.email
   });
   video.value="";
   loadReels();
-}
+};
 
 async function loadReels(){
-  let snap=await getDocs(collection(db,"reels"));
+  let snap = await getDocs(collection(db,"reels"));
   let html="";
   snap.forEach(d=>{
-    html+=`<div class="card"><video src="${d.data().url}" controls></video></div>`;
+    html+=`
+      <div class="card">
+        <video src="${d.data().url}" controls></video>
+      </div>`;
   });
   reelsBox.innerHTML=html;
 }
