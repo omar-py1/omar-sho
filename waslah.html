@@ -6,19 +6,60 @@
 <title>وصلة - Social</title>
 
 <style>
-body { font-family: Arial; background:#f0f2f5; margin:0; }
-.header { background:#1877F2; color:white; padding:15px; text-align:center; font-size:24px; font-weight:bold; }
-.container { max-width:600px; margin:auto; }
-.post { background:white; margin:10px; padding:15px; border-radius:10px; }
-input, button { width:100%; padding:8px; margin-top:5px; }
-button { background:#1877F2; color:white; border:none; border-radius:6px; cursor:pointer; }
-.comment { padding:6px; border-top:1px solid #eee; margin-top:5px; }
+body {
+  font-family: Arial;
+  background:#f0f2f5;
+  margin:0;
+}
+
+.header {
+  background:#1877F2;
+  color:white;
+  padding:15px;
+  text-align:center;
+  font-size:24px;
+  font-weight:bold;
+}
+
+.container {
+  max-width:600px;
+  margin:auto;
+}
+
+.post {
+  background:white;
+  margin:10px;
+  padding:15px;
+  border-radius:10px;
+}
+
+input, button {
+  width:100%;
+  padding:8px;
+  margin-top:5px;
+  border-radius:6px;
+  box-sizing:border-box;
+}
+
+button {
+  background:#1877F2;
+  color:white;
+  border:none;
+  cursor:pointer;
+}
+
+.comment {
+  padding:6px;
+  border-top:1px solid #eee;
+  margin-top:5px;
+  font-size:14px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="header">وصلة 🔥</div>
+<div class="header">وصلة 🔥 Social</div>
 
 <div class="container">
 
@@ -42,9 +83,11 @@ import {
   getDocs,
   doc,
   updateDoc,
+  getDoc,
   arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+// 🔥 Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyDEJV1E1MMfjbFtneZpd4DAaV7TgKscfhc",
   authDomain: "omar-py.firebaseapp.com",
@@ -58,92 +101,86 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // 🟢 إنشاء بوست
-window.addPost = async function(){
+window.addPost = async function () {
   let text = document.getElementById("postText").value;
-  if(!text) return;
+  if (!text) return;
 
-  await addDoc(collection(db,"posts"),{
-    text:text,
-    likes:0,
-    likedBy:[],
-    comments:[]
+  await addDoc(collection(db, "posts"), {
+    text,
+    likes: 0,
+    likedBy: [],
+    comments: []
   });
 
   document.getElementById("postText").value = "";
   loadPosts();
-}
+};
 
-// 🟢 لايك احترافي محفوظ
-window.likePost = async function(id, post){
+// 🟢 لايك / إلغاء لايك
+window.likePost = async function (id) {
 
   let userId = localStorage.getItem("uid");
 
-  if(!userId){
+  if (!userId) {
     userId = crypto.randomUUID();
     localStorage.setItem("uid", userId);
   }
 
-  if(post.likedBy && post.likedBy.includes(userId)){
-    alert("عملت لايك قبل كده 👍");
-    return;
+  const ref = doc(db, "posts", id);
+  const snap = await getDoc(ref);
+  const post = snap.data();
+
+  const liked = post.likedBy?.includes(userId);
+
+  if (liked) {
+    await updateDoc(ref, {
+      likes: Math.max((post.likes || 1) - 1, 0),
+      likedBy: post.likedBy.filter(u => u !== userId)
+    });
+  } else {
+    await updateDoc(ref, {
+      likes: (post.likes || 0) + 1,
+      likedBy: arrayUnion(userId)
+    });
   }
 
-  await updateDoc(doc(db,"posts",id),{
-    likes: (post.likes || 0) + 1,
-    likedBy: arrayUnion(userId)
-  });
-
   loadPosts();
-}
+};
 
-// 🟢 تعليق
-window.addComment = async function(id){
-  let input = document.getElementById("c-"+id);
+// 🟢 إضافة تعليق
+window.addComment = async function (id) {
+
+  let input = document.getElementById("c-" + id);
   let text = input.value;
-  if(!text) return;
 
-  await updateDoc(doc(db,"posts",id),{
+  if (!text) return;
+
+  await updateDoc(doc(db, "posts", id), {
     comments: arrayUnion(text)
   });
 
   input.value = "";
   loadPosts();
-}
+};
 
 // 🟢 عرض البوستات
-async function loadPosts(){
-  let snap = await getDocs(collection(db,"posts"));
+async function loadPosts() {
+
+  let snap = await getDocs(collection(db, "posts"));
 
   let html = "";
 
-  snap.forEach(d=>{
+  snap.forEach(d => {
+
     let p = d.data();
 
     html += `
       <div class="post">
         <p>${p.text}</p>
 
-        <button onclick='likePost("${d.id}", ${JSON.stringify(p)})'>
+        <button onclick="likePost('${d.id}')">
           ❤️ ${p.likes || 0}
         </button>
 
-        <input id="c-${d.id}" placeholder="تعليق...">
-        <button onclick="addComment('${d.id}')">إرسال</button>
-    `;
-
-    (p.comments || []).forEach(c=>{
-      html += `<div class="comment">💬 ${c}</div>`;
-    });
-
-    html += `</div>`;
-  });
-
-  document.getElementById("posts").innerHTML = html;
-}
-
-loadPosts();
-
-</script>
-
-</body>
-</html>
+        <input id="c-${d.id}" placeholder="اكتب تعليق...">
+        <button onclick="addComment('${d.id}')">إرسال</
