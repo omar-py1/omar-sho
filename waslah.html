@@ -3,42 +3,166 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>وصلة</title>
+<title>وصلة - Social</title>
+
 <style>
-body { font-family: Arial; background: #f0f2f5; margin: 0; }
-.header { background: #1877F2; color: white; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; }
-.post { background: white; margin: 10px; padding: 15px; border-radius: 10px; }
-.post h3 { color: #1877F2; }
+body { font-family: Arial; background:#f0f2f5; margin:0; }
+
+.header {
+  background:#1877F2;
+  color:white;
+  padding:15px;
+  text-align:center;
+  font-size:24px;
+  font-weight:bold;
+}
+
+.container { max-width:600px; margin:auto; }
+
+.post {
+  background:white;
+  margin:10px;
+  padding:15px;
+  border-radius:10px;
+}
+
+input, button {
+  padding:8px;
+  margin:5px 0;
+  width:100%;
+}
+
+button {
+  background:#1877F2;
+  color:white;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.comment {
+  border-top:1px solid #eee;
+  padding:6px;
+  margin-top:5px;
+}
 </style>
 </head>
+
 <body>
-<div class="header">وصلة 🔗</div>
+
+<div class="header">وصلة 🔥 Social</div>
+
+<div class="container">
+
+<!-- إنشاء بوست -->
 <div class="post">
-<h3>عمر أيوب</h3>
-<p>أهلاً بكم في وصلة! 🎉</p>
-<button class="like-btn" onclick="like(this)">❤️ إعجاب <span>0</span></button>
-<div style="margin-top:10px;">
-  <input id="comment" placeholder="اكتب تعليق..." style="width:70%;padding:8px;border:1px solid #ddd;border-radius:8px;">
-  <button onclick="addComment()" style="padding:8px 12px;background:#1877F2;color:white;border:none;border-radius:8px;">إرسال</button>
-  <div id="comments"></div>
-</div>
+<h3>إنشاء منشور</h3>
+<input id="postText" placeholder="اكتب منشور...">
+<button onclick="addPost()">نشر</button>
 </div>
 
-<script>
-function like(btn) {
-  btn.classList.toggle('liked');
-  let n = parseInt(btn.querySelector('span').innerText);
-  btn.querySelector('span').innerText = btn.classList.contains('liked') ? n+1 : n-1;
-}
-function addComment() {
-  let text = document.getElementById('comment').value;
+<!-- عرض البوستات -->
+<div id="posts"></div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  updateDoc,
+  arrayUnion
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// 🔥 Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyDEJV1E1MMfjbFtneZpd4DAaV7TgKscfhc",
+  authDomain: "omar-py.firebaseapp.com",
+  projectId: "omar-py",
+  storageBucket: "omar-py.firebasestorage.app",
+  messagingSenderId: "811902556497",
+  appId: "1:811902556497:web:dbaada7d83e90c8aed1b70"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// 🟢 إضافة بوست
+window.addPost = async function(){
+  let text = document.getElementById("postText").value;
   if(!text) return;
-  let div = document.createElement('div');
-  div.style = "padding:8px;border-top:1px solid #eee;margin-top:5px;";
-  div.innerHTML = '<b>زائر:</b> ' + text;
-  document.getElementById('comments').appendChild(div);
-  document.getElementById('comment').value = '';
+
+  await addDoc(collection(db,"posts"),{
+    text:text,
+    likes:0,
+    comments:[]
+  });
+
+  document.getElementById("postText").value = "";
+  loadPosts();
 }
+
+// 🟢 لايك
+window.likePost = async function(id, likes){
+  await updateDoc(doc(db,"posts",id),{
+    likes: likes + 1
+  });
+  loadPosts();
+}
+
+// 🟢 تعليق
+window.addComment = async function(id){
+  let input = document.getElementById("c-"+id);
+  let text = input.value;
+  if(!text) return;
+
+  await updateDoc(doc(db,"posts",id),{
+    comments: arrayUnion(text)
+  });
+
+  input.value = "";
+  loadPosts();
+}
+
+// 🟢 تحميل البوستات
+async function loadPosts(){
+  let snap = await getDocs(collection(db,"posts"));
+
+  let html = "";
+
+  snap.forEach(d=>{
+    let p = d.data();
+
+    html += `
+      <div class="post">
+        <p>${p.text}</p>
+
+        <button onclick="likePost('${d.id}',${p.likes || 0})">
+          ❤️ ${p.likes || 0}
+        </button>
+
+        <input id="c-${d.id}" placeholder="تعليق...">
+        <button onclick="addComment('${d.id}')">إرسال</button>
+    `;
+
+    (p.comments || []).forEach(c=>{
+      html += `<div class="comment">💬 ${c}</div>`;
+    });
+
+    html += `</div>`;
+  });
+
+  document.getElementById("posts").innerHTML = html;
+}
+
+loadPosts();
+
 </script>
+
 </body>
 </html>
