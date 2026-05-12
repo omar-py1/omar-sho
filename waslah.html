@@ -87,9 +87,10 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* ================= UI ================= */
+/* ================= ELEMENTS ================= */
 const loginDiv = document.getElementById("login");
 const appDiv = document.getElementById("app");
+
 const feed = document.getElementById("feed");
 const msgs = document.getElementById("msgs");
 
@@ -98,7 +99,7 @@ const password = document.getElementById("password");
 const postText = document.getElementById("postText");
 const msgText = document.getElementById("msgText");
 
-/* ================= AUTH ================= */
+/* ================= AUTH STATE ================= */
 onAuthStateChanged(auth,(user)=>{
   if(user){
     loginDiv.style.display="none";
@@ -113,11 +114,19 @@ onAuthStateChanged(auth,(user)=>{
 
 /* ================= AUTH ACTIONS ================= */
 window.signup = async ()=>{
-  await createUserWithEmailAndPassword(auth,email.value,password.value);
+  try{
+    await createUserWithEmailAndPassword(auth,email.value,password.value);
+  }catch(e){
+    alert(e.message);
+  }
 };
 
 window.login = async ()=>{
-  await signInWithEmailAndPassword(auth,email.value,password.value);
+  try{
+    await signInWithEmailAndPassword(auth,email.value,password.value);
+  }catch(e){
+    alert(e.message);
+  }
 };
 
 window.logout = ()=>signOut(auth);
@@ -131,6 +140,7 @@ window.show = (page)=>{
 /* ================= POSTS ================= */
 window.addPost = async ()=>{
   if(!postText.value) return;
+  if(!auth.currentUser) return alert("سجل دخول أولاً");
 
   await addDoc(collection(db,"posts"),{
     text: postText.value,
@@ -158,6 +168,7 @@ function loadPosts(){
 /* ================= CHAT ================= */
 window.sendMsg = async ()=>{
   if(!msgText.value) return;
+  if(!auth.currentUser) return alert("سجل دخول أولاً");
 
   await addDoc(collection(db,"messages"),{
     text: msgText.value,
